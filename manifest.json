@@ -4,6 +4,16 @@
   "description": "Track your running activity in real-time.",
   "icons": [
     {
+      "src": "icon.png",
+      "sizes": "626x626",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-180x180.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
       "src": "icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
