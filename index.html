@@ -2,233 +2,236 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="icon.png">
-    <title>Running Tracker</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velocita: Running Tracker</title>
     <style>
+        /* Cool and Fresh Color Palette */
+        :root {
+            --primary: #2E5BFF; /* Vibrant blue */
+            --secondary: #4CAF50; /* Fresh green */
+            --accent: #FF5252; /* Coral-red */
+            --background: #F8F9FA; /* Soft off-white */
+            --text: #2D3142; /* Deep slate gray */
+            --muted-text: #6C757D; /* Muted gray */
+            --border: #E9ECEF; /* Light gray */
+        }
+
+        /* Modern Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500&display=swap');
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, sans-serif;
         }
 
         body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             padding: 20px;
-            background: #F8F9FA; /* Soft off-white */
         }
 
         .container {
-            max-width: 600px;
-            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
         }
 
         .stats {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            border: 1px solid #E9ECEF; /* Light gray for borders */
+            margin-bottom: 2rem;
         }
 
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            color: #2D3142; /* Deep slate gray for primary text */
+        .stat {
+            margin: 1rem 0;
+            font-size: 1.1rem;
+            color: var(--muted-text);
         }
 
-        .stat-value {
-            font-weight: 500;
-            color: #2D3142; /* Deep slate gray for primary text */
+        .stat span {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        #distance span {
+            color: var(--secondary); /* Green for distance */
+        }
+
+        #speed span {
+            color: var(--primary); /* Blue for speed */
+        }
+
+        #time span {
+            color: var(--accent); /* Red for time */
         }
 
         button {
-            width: 100%;
-            padding: 15px;
+            padding: 0.75rem 1.5rem;
+            margin: 0.5rem;
             border: none;
-            background: #2E5BFF; /* Vibrant blue for primary accent */
-            color: white;
             border-radius: 8px;
-            font-size: 16px;
+            background: var(--primary);
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: opacity 0.3s, transform 0.2s;
         }
 
         button:hover {
             opacity: 0.9;
+            transform: translateY(-2px);
         }
 
-        #map {
-            height: 200px;
-            border-radius: 12px;
-            margin-top: 20px;
-            border: 1px solid #E9ECEF; /* Light gray for borders */
+        button:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            opacity: 0.7;
         }
 
-        /* Custom colors for specific stats */
-        #distance {
-            color: #4CAF50; /* Fresh green for distance metrics */
-        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.75rem;
+            }
 
-        #speed {
-            color: #2E5BFF; /* Vibrant blue for speed */
-        }
+            .stat {
+                font-size: 1rem;
+            }
 
-        #steps {
-            color: #6C757D; /* Muted gray for secondary text */
-        }
-
-        /* Alert color for warnings */
-        .alert {
-            color: #FF5252; /* Coral-red for warnings */
+            button {
+                width: 100%;
+                margin: 0.5rem 0;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <h1>Run Tracker</h1>
         <div class="stats">
-            <div class="stat-row">
-                <span>Time:</span>
-                <span class="stat-value" id="time">0:00</span>
+            <div class="stat" id="distance">
+                Distance: <span>0.00 km</span>
             </div>
-            <div class="stat-row">
-                <span>Distance:</span>
-                <span class="stat-value" id="distance">0.00 km</span>
+            <div class="stat" id="speed">
+                Speed: <span>0.0 km/h</span>
             </div>
-            <div class="stat-row">
-                <span>Speed:</span>
-                <span class="stat-value" id="speed">0.0 km/h</span>
-            </div>
-            <div class="stat-row">
-                <span>Steps:</span>
-                <span class="stat-value" id="steps">0</span>
+            <div class="stat" id="time">
+                Time: <span>00:00:00</span>
             </div>
         </div>
-
         <button id="startBtn">Start Run</button>
-        <div id="map"></div>
+        <button id="stopBtn" disabled>Stop Run</button>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         let watchId = null;
         let startTime = null;
         let positions = [];
         let totalDistance = 0;
-        let stepCount = 0;
-        let map = null;
-        let polyline = null;
-
-        // Average stride length in meters (adjust as needed)
-        const STRIDE_LENGTH = 0.75; 
+        let timerInterval = null;
 
         const startBtn = document.getElementById('startBtn');
-        const timeElement = document.getElementById('time');
-        const distanceElement = document.getElementById('distance');
-        const speedElement = document.getElementById('speed');
-        const stepsElement = document.getElementById('steps');
+        const stopBtn = document.getElementById('stopBtn');
+        const distanceElement = document.getElementById('distance').querySelector('span');
+        const speedElement = document.getElementById('speed').querySelector('span');
+        const timeElement = document.getElementById('time').querySelector('span');
 
-        function calculateDistance(pos1, pos2) {
+        // Function to calculate distance between two coordinates (in meters)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3; // Earth radius in meters
-            const φ1 = pos1.latitude * Math.PI/180;
-            const φ2 = pos2.latitude * Math.PI/180;
-            const Δφ = (pos2.latitude - pos1.latitude) * Math.PI/180;
-            const Δλ = (pos2.longitude - pos1.longitude) * Math.PI/180;
+            const φ1 = (lat1 * Math.PI) / 180;
+            const φ2 = (lat2 * Math.PI) / 180;
+            const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+            const Δλ = ((lon2 - lon1) * Math.PI) / 180;
 
-            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                      Math.cos(φ1) * Math.cos(φ2) *
-                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const a =
+                Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
             return R * c;
         }
 
-        function updateDisplay() {
-            // Update timer
+        // Function to update the timer
+        function updateTimer() {
             const elapsed = Date.now() - startTime;
-            const minutes = Math.floor(elapsed / 60000);
-            const seconds = ((elapsed % 60000) / 1000).toFixed(0);
-            timeElement.textContent = `${minutes}:${seconds.padStart(2, '0')}`;
-
-            // Update distance
-            distanceElement.textContent = `${(totalDistance / 1000).toFixed(2)} km`;
-
-            // Update steps
-            stepsElement.textContent = Math.floor(totalDistance / STRIDE_LENGTH);
+            const hours = Math.floor(elapsed / 3600000);
+            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            timeElement.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
+        // Function to handle position updates
         function handlePosition(position) {
-            const newPos = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                timestamp: position.timestamp
-            };
+            const { latitude, longitude } = position.coords;
 
             if (positions.length > 0) {
-                const lastPos = positions[positions.length - 1];
-                const distance = calculateDistance(lastPos, newPos);
+                const lastPosition = positions[positions.length - 1];
+                const distance = calculateDistance(
+                    lastPosition.latitude,
+                    lastPosition.longitude,
+                    latitude,
+                    longitude
+                );
                 totalDistance += distance;
-                
-                // Update speed
-                const timeDiff = (newPos.timestamp - lastPos.timestamp) / 1000;
-                const speed = distance / timeDiff; // m/s
-                speedElement.textContent = `${(speed * 3.6).toFixed(1)} km/h`;
+
+                // Calculate speed (in km/h)
+                const timeDiff = (position.timestamp - lastPosition.timestamp) / 1000; // in seconds
+                const speed = (distance / timeDiff) * 3.6; // Convert m/s to km/h
+                speedElement.textContent = `${speed.toFixed(1)} km/h`;
             }
 
-            positions.push(newPos);
-            
-            // Update map
-            if (map) {
-                map.setView([newPos.latitude, newPos.longitude], 15);
-                polyline.addLatLng([newPos.latitude, newPos.longitude]);
-            }
-
-            updateDisplay();
+            positions.push({ latitude, longitude, timestamp: position.timestamp });
+            distanceElement.textContent = `${(totalDistance / 1000).toFixed(2)} km`;
         }
 
-        function startTracking() {
+        // Start tracking
+        startBtn.addEventListener('click', () => {
             if (!navigator.geolocation) {
-                alert("Geolocation is not supported by your browser");
+                alert("Geolocation is not supported by your browser.");
                 return;
             }
 
-            startBtn.textContent = 'Stop Run';
             startTime = Date.now();
-            totalDistance = 0;
             positions = [];
-            
-            // Initialize map
-            if (!map) {
-                map = L.map('map');
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                polyline = L.polyline([], {color: '#2E5BFF'}).addTo(map); /* Vibrant blue for route */
-            }
+            totalDistance = 0;
+            distanceElement.textContent = '0.00 km';
+            speedElement.textContent = '0.0 km/h';
+            timeElement.textContent = '00:00:00';
 
             watchId = navigator.geolocation.watchPosition(
                 handlePosition,
-                error => console.error(error),
-                {enableHighAccuracy: true, maximumAge: 0}
+                (error) => console.error(error),
+                { enableHighAccuracy: true, maximumAge: 0 }
             );
 
-            // Start update loop
-            timerInterval = setInterval(updateDisplay, 1000);
-        }
+            timerInterval = setInterval(updateTimer, 1000);
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+        });
 
-        function stopTracking() {
-            startBtn.textContent = 'Start Run';
+        // Stop tracking
+        stopBtn.addEventListener('click', () => {
             if (watchId) navigator.geolocation.clearWatch(watchId);
-            clearInterval(timerInterval);
-        }
-
-        startBtn.addEventListener('click', () => {
-            if (startBtn.textContent === 'Start Run') {
-                startTracking();
-            } else {
-                stopTracking();
-            }
+            if (timerInterval) clearInterval(timerInterval);
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
         });
     </script>
 </body>
