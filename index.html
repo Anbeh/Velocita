@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="icon.png">
+    <title>Running Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, sans-serif;
+        }
+
+        body {
+            padding: 20px;
+            background: #F8F9FA; /* Soft off-white */
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stats {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: 1px solid #E9ECEF; /* Light gray for borders */
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            color: #2D3142; /* Deep slate gray for primary text */
+        }
+
+        .stat-value {
+            font-weight: 500;
+            color: #2D3142; /* Deep slate gray for primary text */
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            background: #2E5BFF; /* Vibrant blue for primary accent */
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #map {
+            height: 200px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid #E9ECEF; /* Light gray for borders */
+        }
+
+        /* Custom colors for specific stats */
+        #distance {
+            color: #4CAF50; /* Fresh green for distance metrics */
+        }
+
+        #speed {
+            color: #2E5BFF; /* Vibrant blue for speed */
+        }
+
+        #steps {
+            color: #6C757D; /* Muted gray for secondary text */
+        }
+
+        /* Alert color for warnings */
+        .alert {
+            color: #FF5252; /* Coral-red for warnings */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="stats">
+            <div class="stat-row">
+                <span>Time:</span>
+                <span class="stat-value" id="time">0:00</span>
+            </div>
+            <div class="stat-row">
+                <span>Distance:</span>
+                <span class="stat-value" id="distance">0.00 km</span>
+            </div>
+            <div class="stat-row">
+                <span>Speed:</span>
+                <span class="stat-value" id="speed">0.0 km/h</span>
+            </div>
+            <div class="stat-row">
+                <span>Steps:</span>
+                <span class="stat-value" id="steps">0</span>
+            </div>
+        </div>
+
+        <button id="startBtn">Start Run</button>
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        let watchId = null;
+        let startTime = null;
+        let positions = [];
+        let totalDistance = 0;
+        let stepCount = 0;
+        let map = null;
+        let polyline = null;
+
+        // Average stride length in meters (adjust as needed)
+        const STRIDE_LENGTH = 0.75; 
+
+        const startBtn = document.getElementById('startBtn');
+        const timeElement = document.getElementById('time');
+        const distanceElement = document.getElementById('distance');
+        const speedElement = document.getElementById('speed');
+        const stepsElement = document.getElementById('steps');
+
+        function calculateDistance(pos1, pos2) {
+            const R = 6371e3; // Earth radius in meters
+            const φ1 = pos1.latitude * Math.PI/180;
+            const φ2 = pos2.latitude * Math.PI/180;
+            const Δφ = (pos2.latitude - pos1.latitude) * Math.PI/180;
+            const Δλ = (pos2.longitude - pos1.longitude) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        function updateDisplay() {
+            // Update timer
+            const elapsed = Date.now() - startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = ((elapsed % 60000) / 1000).toFixed(0);
+            timeElement.textContent = `${minutes}:${seconds.padStart(2, '0')}`;
+
+            // Update distance
+            distanceElement.textContent = `${(totalDistance / 1000).toFixed(2)} km`;
+
+            // Update steps
+            stepsElement.textContent = Math.floor(totalDistance / STRIDE_LENGTH);
+        }
+
+        function handlePosition(position) {
+            const newPos = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                timestamp: position.timestamp
+            };
+
+            if (positions.length > 0) {
+                const lastPos = positions[positions.length - 1];
+                const distance = calculateDistance(lastPos, newPos);
+                totalDistance += distance;
+                
+                // Update speed
+                const timeDiff = (newPos.timestamp - lastPos.timestamp) / 1000;
+                const speed = distance / timeDiff; // m/s
+                speedElement.textContent = `${(speed * 3.6).toFixed(1)} km/h`;
+            }
+
+            positions.push(newPos);
+            
+            // Update map
+            if (map) {
+                map.setView([newPos.latitude, newPos.longitude], 15);
+                polyline.addLatLng([newPos.latitude, newPos.longitude]);
+            }
+
+            updateDisplay();
+        }
+
+        function startTracking() {
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser");
+                return;
+            }
+
+            startBtn.textContent = 'Stop Run';
+            startTime = Date.now();
+            totalDistance = 0;
+            positions = [];
+            
+            // Initialize map
+            if (!map) {
+                map = L.map('map');
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                polyline = L.polyline([], {color: '#2E5BFF'}).addTo(map); /* Vibrant blue for route */
+            }
+
+            watchId = navigator.geolocation.watchPosition(
+                handlePosition,
+                error => console.error(error),
+                {enableHighAccuracy: true, maximumAge: 0}
+            );
+
+            // Start update loop
+            timerInterval = setInterval(updateDisplay, 1000);
+        }
+
+        function stopTracking() {
+            startBtn.textContent = 'Start Run';
+            if (watchId) navigator.geolocation.clearWatch(watchId);
+            clearInterval(timerInterval);
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (startBtn.textContent === 'Start Run') {
+                startTracking();
+            } else {
+                stopTracking();
+            }
+        });
+    </script>
+</body>
+</html>
