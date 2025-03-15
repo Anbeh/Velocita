@@ -1,0 +1,118 @@
+/* Cool and Fresh Color Palette */
+:root {
+    --primary: #2E5BFF; /* Vibrant blue */
+    --secondary: #4CAF50; /* Fresh green */
+    --accent: #FF5252; /* Coral-red */
+    --background: #F8F9FA; /* Soft off-white */
+    --text: #2D3142; /* Deep slate gray */
+    --muted-text: #6C757D; /* Muted gray */
+    --border: #E9ECEF; /* Light gray */
+}
+
+/* Modern Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--background);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary);
+}
+
+.stats {
+    margin-bottom: 2rem;
+}
+
+.stat {
+    margin: 1rem 0;
+    font-size: 1.1rem;
+    color: var(--muted-text);
+}
+
+.stat span {
+    font-weight: 600;
+    color: var(--text);
+}
+
+#distance span {
+    color: var(--secondary); /* Green for distance */
+}
+
+#speed span {
+    color: var(--primary); /* Blue for speed */
+}
+
+#time span {
+    color: var(--accent); /* Red for time */
+}
+
+button {
+    padding: 0.75rem 1.5rem;
+    margin: 0.5rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.3s, transform 0.2s;
+}
+
+button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+button:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    .stat {
+        font-size: 1rem;
+    }
+
+    button {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+}
+
+#credits {
+    text-decoration: none; /* Remove underline */
+    color: inherit; /* Inherit text color */
+}
