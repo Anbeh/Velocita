@@ -43,3 +43,10 @@ Velocita is licensed under the MIT License. See [LICENSE](LICENSE) for more deta
 ---
 
 **Run smarter, not harder. Download Velocita today and take your running to the next level!**
+
+
+
+
+
+
+## it was for school project, it's not working :))
